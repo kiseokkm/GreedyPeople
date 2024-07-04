@@ -12,14 +12,16 @@ import lombok.Getter;
 public class ProfileResponseDto {
 
     private String userId;
-
     private String userName;
-
     private String intro;
+    private long likedMenusCount;
+    private long likedReviewsCount;
 
-    public ProfileResponseDto(User user) {
+    public ProfileResponseDto(User user, long likedMenusCount, long likedReviewsCount) {
         this.userId = user.getUserId();
         this.userName = user.getUserName();
         this.intro = user.getIntro();
+        this.likedMenusCount = likedMenusCount;
+        this.likedReviewsCount = likedReviewsCount;
     }
 }

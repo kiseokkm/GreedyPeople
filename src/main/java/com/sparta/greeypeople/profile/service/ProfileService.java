@@ -1,5 +1,6 @@
 package com.sparta.greeypeople.profile.service;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.greeypeople.profile.dto.request.PasswordUpdateRequestDto;
 import com.sparta.greeypeople.profile.dto.request.ProfileRequestDto;
 import com.sparta.greeypeople.profile.dto.response.ProfileResponseDto;
@@ -7,6 +8,8 @@ import com.sparta.greeypeople.profile.entity.PasswordList;
 import com.sparta.greeypeople.profile.repository.PasswordListRepository;
 import com.sparta.greeypeople.user.entity.User;
 import com.sparta.greeypeople.user.repository.UserRepository;
+import com.sparta.greeypeople.like.entity.QMenuLikes;
+import com.sparta.greeypeople.like.entity.QReviewLikes;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,16 +26,29 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordListRepository passwordListRepository;
+    private final JPAQueryFactory queryFactory;
 
-    public ProfileService(UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordListRepository passwordListRepository) {
+    public ProfileService(UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordListRepository passwordListRepository, JPAQueryFactory queryFactory) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.passwordListRepository = passwordListRepository;
+        this.queryFactory = queryFactory;
     }
 
     @Transactional(readOnly = true)
     public ProfileResponseDto getProfile(User user) {
-        return new ProfileResponseDto(user);
+        QMenuLikes qMenuLikes = QMenuLikes.menuLikes;
+        QReviewLikes qReviewLikes = QReviewLikes.reviewLikes;
+
+        long likedMenusCount = queryFactory.selectFrom(qMenuLikes)
+            .where(qMenuLikes.user.eq(user))
+            .fetchCount();
+
+        long likedReviewsCount = queryFactory.selectFrom(qReviewLikes)
+            .where(qReviewLikes.user.eq(user))
+            .fetchCount();
+
+        return new ProfileResponseDto(user, likedMenusCount, likedReviewsCount);
     }
 
     @Transactional
@@ -40,7 +56,7 @@ public class ProfileService {
         user.updateUserName(requestDto.getUserName());
         user.updateIntro(requestDto.getIntro());
         userRepository.save(user);
-        return new ProfileResponseDto(user);
+        return getProfile(user);
     }
 
     @Transactional
