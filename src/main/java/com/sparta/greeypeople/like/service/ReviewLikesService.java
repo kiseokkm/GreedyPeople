@@ -1,11 +1,14 @@
 package com.sparta.greeypeople.like.service;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sparta.greeypeople.exception.BadRequestException;
 import com.sparta.greeypeople.exception.DataNotFoundException;
 import com.sparta.greeypeople.exception.ForbiddenException;
 import com.sparta.greeypeople.exception.ViolatedException;
 import com.sparta.greeypeople.like.entity.ReviewLikes;
+import com.sparta.greeypeople.like.entity.QReviewLikes;
 import com.sparta.greeypeople.like.repository.ReviewLikesRepository;
+import com.sparta.greeypeople.review.dto.response.ReviewResponseDto;
 import com.sparta.greeypeople.review.entity.Review;
 import com.sparta.greeypeople.review.repository.ReviewRepository;
 import com.sparta.greeypeople.store.entity.Store;
@@ -14,8 +17,13 @@ import com.sparta.greeypeople.user.entity.User;
 import com.sparta.greeypeople.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,6 +34,7 @@ public class ReviewLikesService {
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
     private final StoreRepository storeRepository;
+    private final JPAQueryFactory queryFactory;
 
     @Transactional
     public void addReviewLike(Long storeId, Long reviewId, User user) {
@@ -76,5 +85,27 @@ public class ReviewLikesService {
         }
 
         return foundReview;
+    }
+
+    @Transactional
+    public Page<ReviewResponseDto> getLikedReviews(User user, PageRequest pageRequest) {
+        QReviewLikes qReviewLikes = QReviewLikes.reviewLikes;
+
+        List<ReviewLikes> likedReviews = queryFactory.selectFrom(qReviewLikes)
+            .where(qReviewLikes.user.eq(user))
+            .orderBy(qReviewLikes.createdAt.desc())
+            .offset(pageRequest.getOffset())
+            .limit(pageRequest.getPageSize())
+            .fetch();
+
+        List<ReviewResponseDto> reviewDtos = likedReviews.stream()
+            .map(reviewLike -> new ReviewResponseDto(reviewLike.getReview()))
+            .collect(Collectors.toList());
+
+        long total = queryFactory.selectFrom(qReviewLikes)
+            .where(qReviewLikes.user.eq(user))
+            .fetchCount();
+
+        return new PageImpl<>(reviewDtos, pageRequest, total);
     }
 }

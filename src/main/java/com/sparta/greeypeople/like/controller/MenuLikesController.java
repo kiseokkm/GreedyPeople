@@ -1,17 +1,17 @@
 package com.sparta.greeypeople.like.controller;
 
 import com.sparta.greeypeople.auth.security.UserDetailsImpl;
+import com.sparta.greeypeople.common.DataCommonResponse;
 import com.sparta.greeypeople.common.StatusCommonResponse;
 import com.sparta.greeypeople.like.service.MenuLikesService;
+import com.sparta.greeypeople.menu.dto.response.MenuResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,4 +49,21 @@ public class MenuLikesController {
 		return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 	}
 
+	/**
+	 * 좋아요한 메뉴 목록 조회 기능
+	 *
+	 * @param userDetails : 사용자 정보
+	 * @param page        : 페이지 번호
+	 * @return : 좋아요한 메뉴 목록
+	 */
+	@GetMapping("/likes")
+	public ResponseEntity<DataCommonResponse<Page<MenuResponseDto>>> getLikedMenus(
+		@AuthenticationPrincipal UserDetailsImpl userDetails,
+		@RequestParam(defaultValue = "0") int page
+	) {
+		PageRequest pageRequest = PageRequest.of(page, 5);
+		Page<MenuResponseDto> likedMenus = menuLikesService.getLikedMenus(userDetails.getUser(), pageRequest);
+		DataCommonResponse<Page<MenuResponseDto>> response = new DataCommonResponse<>(200, "좋아요한 메뉴 목록 조회 성공", likedMenus);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
