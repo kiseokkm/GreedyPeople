@@ -2,6 +2,7 @@ package com.sparta.greeypeople.menu.controller;
 
 import com.sparta.greeypeople.common.DataCommonResponse;
 import com.sparta.greeypeople.menu.dto.response.AdminMenuResponseDto;
+import com.sparta.greeypeople.menu.dto.response.MenuResponseDto;
 import com.sparta.greeypeople.menu.service.MenuService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,4 +34,21 @@ public class MenuController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    /**
+     * 메뉴 단건 조회 기능
+     *
+     * @param storeId : 메뉴가 등록된 가게의 Id
+     * @param menuId  : 조회할 메뉴의 Id
+     * @return : 조회된 메뉴의 정보
+     */
+    @GetMapping("/stores/{storeId}/menus/{menuId}")
+    public ResponseEntity<DataCommonResponse<MenuResponseDto>> getMenu(
+        @PathVariable Long storeId,
+        @PathVariable Long menuId
+    ) {
+        MenuResponseDto menu = menuService.getMenu(storeId, menuId);
+        DataCommonResponse<MenuResponseDto> response = new DataCommonResponse<>(200,
+            "메뉴 조회 성공", menu);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

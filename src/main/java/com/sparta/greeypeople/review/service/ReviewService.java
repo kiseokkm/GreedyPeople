@@ -70,13 +70,13 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
-    public Store findStore(Long storeId) {
+    private Store findStore(Long storeId) {
         return storeRepository.findById(storeId).orElseThrow(
             () -> new DataNotFoundException("조회된 가게의 정보가 없습니다.")
         );
     }
 
-    public Review findReview(Long reviewId) {
+    private Review findReview(Long reviewId) {
         return reviewRepository.findById(reviewId).orElseThrow(
             () -> new DataNotFoundException("조회된 리뷰 정보가 없습니다")
         );

@@ -9,9 +9,11 @@ public class ReviewResponseDto {
 
     private final String content;
     private final LocalDateTime updateAt;
+    private final Long likes;
 
     public ReviewResponseDto(Review review) {
         this.content = review.getContent();
         this.updateAt = review.getModifiedAt();
+        this.likes = review.getReviewLikes();
     }
 }
