@@ -63,12 +63,9 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderResponseDto> getAllOrder(int page, String sortBy, boolean isAsc) {
-        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, sortBy);
-        Pageable pageable = PageRequest.of(page, 5, sort);  // 5는 페이지 크기
+    public Page<OrderResponseDto> getAllOrder(Pageable pageable) {
         Page<Order> orderList = orderRepository.findAll(pageable);
-        return orderList.map(OrderResponseDto::new);
+        return orderList.map(order -> new OrderResponseDto(order));
     }
 
     @Transactional

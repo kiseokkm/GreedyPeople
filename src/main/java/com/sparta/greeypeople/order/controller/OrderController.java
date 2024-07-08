@@ -10,6 +10,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -72,11 +75,9 @@ public class OrderController {
     @Transactional(readOnly = true)
     @GetMapping("/orders")
     public ResponseEntity<DataCommonResponse<List<OrderResponseDto>>> getAllOrder(
-        @RequestParam(value = "page", defaultValue = "0") int page,
-        @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
-        @RequestParam(value = "isAsc", defaultValue = "true") boolean isAsc
+        @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<OrderResponseDto> ordersPage = orderService.getAllOrder(page, sortBy, isAsc);
+        Page<OrderResponseDto> ordersPage = orderService.getAllOrder(pageable);
         List<OrderResponseDto> orders = ordersPage.getContent();
         DataCommonResponse<List<OrderResponseDto>> response = new DataCommonResponse<>(200,
             "주문 전체 조회 성공", orders);
